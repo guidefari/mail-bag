@@ -61,3 +61,14 @@ app.get("/mailboxes/:mailbox/:id",
         }
     }
 );
+app.delete("/mailboxes/:mailbox/:id",
+    async (inRequest: Request, inResponse: Response) => {
+        try {
+            const imapWorker: IMAP.Worker = new IMAP.Worker(serverInfo);
+            await imapWorker.deleteMessage({mailbox : inRequest.params.mailbox, id : parseInt(inRequest.params.id, 10)});
+                inResponse.send("ok");
+        } catch (inError) {
+            inResponse.send("error");
+        }
+    }
+);
