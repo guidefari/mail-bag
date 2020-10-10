@@ -2,7 +2,6 @@ import Mail from "nodemailer/lib/mailer";
 import * as nodemailer from "nodemailer";
 import { SendMailOptions, SentMessageInfo } from "nodemailer";
 import { IServerInfo } from "./ServerInfo";
-const nodemailer = require("nodemailer");
 
 export class Worker {
     private static serverInfo: IServerInfo
@@ -10,7 +9,8 @@ export class Worker {
     constructor(inServerInfo: IServerInfo) {
         Worker.serverInfo = inServerInfo
     }
-
+// with Promise<string>, we’re essentially saying to TypeScript: “this function returns a Promise, but it promises to return a string eventually so make sure the variable that the returned value goes into is that type"
+//Promise<string> is a generic, should you want to look into it further
     public sendMessage(inOptions: SendMailOptions): Promise<string> {
 
         console.log("SMTP.Worker.sendMessage()", inOptions);
