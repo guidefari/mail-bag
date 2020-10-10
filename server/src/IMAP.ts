@@ -47,4 +47,74 @@ export class Worker {
         await client.connect();
         return client;
     }
-}
+
+    //list mailboxes
+    public async listMailboxes(): Promise<IMailbox[]> {
+        const client: any = await this.connectToServer()
+        const mailboxes: any = await client.listMailboxes()
+        await client.close()
+        const finalMailboxes: IMailbox[] = []
+        const iterateChildren: Function = (inArray: any[]): void => {
+            inArray.forEach((inValue: any) => {
+                finalMailboxes.push({
+                    name : inValue.name,
+                    path : inValue.path
+                })
+                iterateChildren(inValue.children)
+            })
+        }
+        iterateChildren(mailboxes.children)
+
+        return finalMailboxes
+        }
+
+        // For listing messages in a named mailbox
+        public async listMessages(inCallOptions: ICallOptions):  Promise<IMessage[]> {
+            const client: any = await this.connectToServer();
+            const mailbox: any = await client.selectMailbox(inCallOptions.mailbox);
+
+            if (mailbox.exists === 0) {
+                await client.close();
+                return [ ];
+            }
+            const messages: any[] = await client.listMessages(inCallOptions.mailbox, "1:*", [ "uid", "envelope" ])
+            await client.close()
+            const finalMessages: IMessage[] = []
+            messages.forEach((inValue: any) => {
+                finalMessages.push({
+                    id : inValue.uid,
+                    date: inValue.envelope.date,
+                    from: inValue.envelope.from[0].address,
+                    subject: inValue.envelope.subject
+                });
+            });
+            return finalMessages;
+        }
+
+        //Since listMessages() doesn’t return message bodies, we need a function to get that, and that’s where getMessageBody() comes in:
+        public async getMessageBody(inCallOptions: ICallOptions): Promise<string> {
+            const client: any = await this.connectToServer();
+            const messages: any[] = await client.listMessages(
+                inCallOptions.mailbox,
+                inCallOptions.id,
+                [ "body[]" ],
+                { byUid : true }
+            );
+            const parsed: ParsedMail = await simpleParser(messages[0]["body[]"]);
+            await client.close();
+            return parsed.text;
+        }
+
+        //to delete a single message
+        public async deleteMessage(inCallOptions: ICallOptions): Promise<any> {
+            const client: any = await this.connectToServer();
+            await client.deleteMessages(
+                inCallOptions.mailbox,
+                inCallOptions.id,
+                { byUid : true }
+            );
+
+            await client.close();
+        }
+
+    }
