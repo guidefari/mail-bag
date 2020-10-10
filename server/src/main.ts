@@ -3,8 +3,8 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import { serverInfo } from "./ServerInfo";
 import * as IMAP from "./IMAP";
 import * as SMTP from "./SMTP";
-// import * as Contacts from "./Contacts";
-// import { IContact } from "./Contacts";
+import * as Contacts from "./Contacts";
+import { IContact } from "./Contacts";
 
 const app = express()
 
@@ -83,3 +83,46 @@ app.post("/messages",
         }
     }
 )
+
+//mailbox & message functionality done, time to turn to the contact endpoints
+app.get("/contacts",
+async (inRequest: Request, inResponse: Response) => {
+    try {
+        const contactsWorker: Contacts.Worker = new Contacts.Worker(serverInfo)
+        const contacts: IContact[] = await contactsWorker.listContacts()
+        inResponse.json(contacts)
+    } catch(inError) {
+        inResponse.send("error")
+    }
+}
+)
+//add contact
+app.post("/contacts",
+  async (inRequest: Request, inResponse: Response) => {
+    console.log("POST /contacts", inRequest.body);
+    try {
+      const contactsWorker: Contacts.Worker = new Contacts.Worker();
+      const contact: IContact = await contactsWorker.addContact(inRequest.body);
+      console.log("POST /contacts: Ok", contact);
+      inResponse.json(contact);
+    } catch (inError) {
+      console.log("POST /contacts: Error", inError);
+      inResponse.send("error");
+    }
+  }
+);
+//delete contact
+app.delete("/contacts/:id",
+  async (inRequest: Request, inResponse: Response) => {
+    console.log("DELETE /contacts", inRequest.body);
+    try {
+      const contactsWorker: Contacts.Worker = new Contacts.Worker();
+      await contactsWorker.deleteContact(inRequest.params.id);
+      console.log("Contact deleted");
+      inResponse.send("ok");
+    } catch (inError) {
+      console.log(inError);
+      inResponse.send("error");
+    }
+  }
+);
