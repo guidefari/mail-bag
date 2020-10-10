@@ -16,3 +16,6 @@ app.listen(8080);
 as many of ours will. Our application code will, thanks to this middleware, receive a
 JavaScript object resulting from the incoming data, saving us the hassle of parsing it
 ourselves.
+
+## resources consumed
+- A word on [ES6 classes](https://youtu.be/RBLIm5LMrmc?list=WL) - Brad Traversy.
