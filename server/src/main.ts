@@ -2,7 +2,7 @@ import path from "path";
 import express, { Express, NextFunction, Request, Response } from "express";
 import { serverInfo } from "./ServerInfo";
 import * as IMAP from "./IMAP";
-// import * as SMTP from "./SMTP";
+import * as SMTP from "./SMTP";
 // import * as Contacts from "./Contacts";
 // import { IContact } from "./Contacts";
 
@@ -72,3 +72,14 @@ app.delete("/mailboxes/:mailbox/:id",
         }
     }
 );
+app.post("/messages",
+    async (inRequest: Request, inResponse: Response) => {
+        try {
+            const smtpWorker: SMTP.Worker = new SMTP.Worker(serverInfo)
+            await smtpWorker.sendMessage(inRequest.body)
+            inResponse.send("would you look at that, your message actually sent")
+        } catch(inError) {
+            inResponse.send("error")
+        }
+    }
+)
